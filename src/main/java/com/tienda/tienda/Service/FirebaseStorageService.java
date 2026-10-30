@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,10 +23,14 @@ public class FirebaseStorageService {
     @Value("${firebase.storage.path}")
     private String storagePath;
     // Aquí se manejaría la inyección del cliente de Storage como un bean
-    private final Storage storage;
+    private final ObjectProvider<Storage> storageProvider;
 
     //Sube un archivo de imagen al almacenamiento de Firebase.
     public String uploadImage(MultipartFile localFile, String folder, Integer id) throws IOException {
+        Storage storage = storageProvider.getIfAvailable();
+        if (storage == null) {
+            throw new IOException("Firebase Storage está desactivado. No se guardó la imagen.");
+        }
         String originalName = localFile.getOriginalFilename();
         String fileExtension = "";
         if (originalName != null && originalName.contains(".")) {
@@ -35,7 +40,7 @@ public class FirebaseStorageService {
         String fileName = "img" + getFormattedNumber(id) + fileExtension;
         File tempFile = convertToFile(localFile);
         try {
-            return uploadToFirebase(tempFile, folder, fileName);
+            return uploadToFirebase(storage, tempFile, folder, fileName);
         } catch (IOException e) {
             // Conserva las excepciones de entrada/salida originales.
             throw e;
@@ -61,7 +66,7 @@ public class FirebaseStorageService {
     }
 
     //Sube el archivo al almacenamiento de Firebase y genera una URL firmada.     
-    private String uploadToFirebase(File file, String folder, String fileName) throws IOException {
+    private String uploadToFirebase(Storage storage, File file, String folder, String fileName) throws IOException {
         // Definimos el ID del blob y su información
         BlobId blobId = BlobId.of(bucketName, storagePath + "/" + folder + "/" + fileName);
         String mimeType = Files.probeContentType(file.toPath());
