@@ -68,7 +68,23 @@
             <div th:replace="~{consultas/fragmentos :: formConsulta('primary',#{consultas.derivadas},'/consultas/consultaDerivada')}"/>
             <div th:replace="~{consultas/fragmentos :: formConsulta('warning',#{consultas.jpql},'/consultas/consultaJPQL')}"/>
             <div th:replace="~{consultas/fragmentos :: formConsulta('success',#{consultas.sql},'/consultas/consultaSQL')}"/>
-            <div class='card'><p>Acá va su Práctica #2</p></div>
+                        <form th:action="@{/consultas/ampliada}" method="get" class="card p-2">
+                <div class="card-header bg-info text-center"><h5>Consulta ampliada de productos</h5></div>
+                <div class="card-body">
+                    <label for="categoriaFiltro">Categoría</label>
+                    <select id="categoriaFiltro" name="categoria" class="form-select mb-2">
+                        <option value="">Todas</option>
+                        <option th:each="c : ${categoriasFiltro}" th:value="${c.idCategoria}" th:text="${c.descripcion}" th:selected="${c.idCategoria == categoriaFiltro}"></option>
+                    </select>
+                    <label for="minimo">Precio mínimo</label>
+                    <input id="minimo" name="minimo" type="number" min="0" step="0.01" required class="form-control mb-2" th:value="${minimo != null ? minimo : 0}"/>
+                    <label for="maximo">Precio máximo</label>
+                    <input id="maximo" name="maximo" type="number" min="0" step="0.01" required class="form-control mb-2" th:value="${maximo != null ? maximo : 1000000}"/>
+                    <label for="existenciasFiltro">Existencias mínimas</label>
+                    <input id="existenciasFiltro" name="existencias" type="number" min="0" step="1" required class="form-control" th:value="${existenciasFiltro != null ? existenciasFiltro : 0}"/>
+                </div>
+                <div class="card-footer text-center"><button type="submit" class="btn btn-info">Consultar productos</button></div>
+            </form>
         </section>
         
         <div th:fragment='formConsulta(colorForm, textoForm, urlForm)'>

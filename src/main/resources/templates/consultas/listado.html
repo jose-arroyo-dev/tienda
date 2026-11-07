@@ -7,6 +7,13 @@
         <header th:replace="~{general/fragmentos :: header}"/>
 
         <section th:replace="~{consultas/fragmentos :: consultas}"/>
+                <div class="container">
+            <div th:if="${errorConsulta != null}" class="alert alert-danger" th:text="${errorConsulta}"></div>
+            <div th:if="${consultaAmpliada == true}" class="alert alert-info">
+                Productos encontrados: <strong th:text="${#lists.size(productos)}"></strong>. Ordenados por precio ascendente.
+                <span th:if="${#lists.isEmpty(productos)}">No hay productos que cumplan los filtros.</span>
+            </div>
+        </div>
         <section th:replace="~{consultas/fragmentos :: tarjetas}"/>
 
         <footer th:replace="~{general/fragmentos :: footer}"/>

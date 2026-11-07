@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class ConsultaController {
 
     private final ProductoService productoService;
+    private final com.tienda.tienda.service.CategoriaService categoriaService;
 
-    public ConsultaController(ProductoService productoService) {
+    public ConsultaController(ProductoService productoService, com.tienda.tienda.service.CategoriaService categoriaService) {
         this.productoService = productoService;
+        this.categoriaService = categoriaService;
     }
 
     @GetMapping("/listado")
@@ -56,6 +58,28 @@ public class ConsultaController {
         model.addAttribute("productos", productos);
         model.addAttribute("precioInf", precioInf);
         model.addAttribute("precioSup", precioSup);
+        return "/consultas/listado";
+    }
+    @org.springframework.web.bind.annotation.ModelAttribute("categoriasFiltro")
+    public java.util.List<com.tienda.tienda.domain.Categoria> categoriasFiltro() {
+        return categoriaService.getCategorias(false);
+    }
+
+    @GetMapping("/ampliada")
+    public String ampliada(@RequestParam(required = false) Integer categoria,
+            @RequestParam BigDecimal minimo, @RequestParam BigDecimal maximo,
+            @RequestParam(defaultValue = "0") Integer existencias, Model model) {
+        model.addAttribute("categoriaFiltro", categoria);
+        model.addAttribute("minimo", minimo);
+        model.addAttribute("maximo", maximo);
+        model.addAttribute("existenciasFiltro", existencias);
+        if (minimo.signum() < 0 || maximo.compareTo(minimo) < 0 || existencias < 0) {
+            model.addAttribute("errorConsulta", "Revise el rango de precios y las existencias: deben ser positivos y el precio superior debe ser mayor o igual al inferior.");
+            model.addAttribute("productos", java.util.List.of());
+        } else {
+            model.addAttribute("productos", productoService.consultaAmpliada(categoria, minimo, maximo, existencias));
+            model.addAttribute("consultaAmpliada", true);
+        }
         return "/consultas/listado";
     }
 }
